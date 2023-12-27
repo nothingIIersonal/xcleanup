@@ -154,4 +154,35 @@ static void _realloc_alloc_cleanups_args() {
   }                                                                            \
   atexit(_cleanup)
 
+#define XMALLOC(ptr, size)                                                     \
+  ptr = (typeof(ptr))malloc(size * sizeof(*ptr));                              \
+  AUTO_CLEANUP(ptr)
+
+#define XCALLOC(ptr, size)                                                     \
+  ptr = (typeof(ptr))calloc(size, sizeof(*ptr));                               \
+  AUTO_CLEANUP(ptr)
+
+#define XREALLOC(ptr, size)                                                    \
+  REMOVE_CLEANUP(ptr);                                                         \
+  ptr = (typeof(ptr))realloc(ptr, size * sizeof(*ptr));                        \
+  AUTO_CLEANUP(ptr)
+
+#define XFREE(ptr)                                                             \
+  REMOVE_CLEANUP(ptr);                                                         \
+  free(ptr);
+
+#ifdef _WIN32
+#define XFOPEN(fd, filename, mode)                                             \
+  fopen_s(&fd, filename, mode);                                                \
+  AUTO_CLEANUP(fd)
+#else
+#define XFOPEN(fd, filename, mode)                                             \
+  fd = fopen(filename, mode);                                                  \
+  AUTO_CLEANUP(fd)
+#endif // _WIN32
+
+#define XFCLOSE(fd)                                                            \
+  REMOVE_CLEANUP(fd);                                                          \
+  fclose(fd)
+
 #endif // _XCLEANUP_H
