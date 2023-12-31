@@ -65,19 +65,48 @@ static void _realloc_alloc_cleanups_args() {
 
 #define _is_same_type(t1, t2) __builtin_types_compatible_p(t1, t2)
 
-#define AUTO_CLEANUP_FD(fd)                                                    \
+#define _AUTO_CLEANUP_FD(fd)                                                   \
   if (_fd_cleanups_i >= _max_fd_cleanups) {                                    \
     _realloc_fd_cleanups_args();                                               \
   }                                                                            \
   _fd_cleanups_args[_fd_cleanups_i] = (FILE *)fd;                              \
   ++_fd_cleanups_i
 
-#define AUTO_CLEANUP_ALLOC(ptr)                                                \
+#define AUTO_CLEANUP_FD(fd)                                                    \
+  if (_fd_cleanups_i == 0) {                                                   \
+    _AUTO_CLEANUP_FD(fd);                                                      \
+  } else {                                                                     \
+    for (size_t _remove_fd_cleanups_i = 0;                                     \
+         _remove_fd_cleanups_i < _fd_cleanups_i; ++_remove_fd_cleanups_i) {    \
+      if (_fd_cleanups_args[_remove_fd_cleanups_i] == (FILE *)fd) {            \
+        break;                                                                 \
+      } else if (_remove_fd_cleanups_i == _fd_cleanups_i - 1) {                \
+        _AUTO_CLEANUP_FD(fd);                                                  \
+      }                                                                        \
+    }                                                                          \
+  }
+
+#define _AUTO_CLEANUP_ALLOC(ptr)                                               \
   if (_alloc_cleanups_i >= _max_alloc_cleanups) {                              \
     _realloc_alloc_cleanups_args();                                            \
   }                                                                            \
   _alloc_cleanups_args[_alloc_cleanups_i] = (void *)ptr;                       \
   ++_alloc_cleanups_i
+
+#define AUTO_CLEANUP_ALLOC(ptr)                                                \
+  if (_alloc_cleanups_i == 0) {                                                \
+    _AUTO_CLEANUP_ALLOC(ptr);                                                  \
+  } else {                                                                     \
+    for (size_t _remove_alloc_cleanups_i = 0;                                  \
+         _remove_alloc_cleanups_i < _alloc_cleanups_i;                         \
+         ++_remove_alloc_cleanups_i) {                                         \
+      if (_alloc_cleanups_args[_remove_alloc_cleanups_i] == (void *)ptr) {     \
+        break;                                                                 \
+      } else if (_remove_alloc_cleanups_i == _alloc_cleanups_i - 1) {          \
+        _AUTO_CLEANUP_ALLOC(ptr);                                              \
+      }                                                                        \
+    }                                                                          \
+  }
 
 #define AUTO_CLEANUP(desc)                                                     \
   if (_is_same_type(typeof(desc), typeof(FILE *))) {                           \
