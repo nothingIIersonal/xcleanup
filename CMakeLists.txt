@@ -5,7 +5,7 @@ set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-include_directories(.)
+include_directories(${CMAKE_SOURCE_DIR})
 
 ADD_CUSTOM_TARGET(leak-check
   COMMAND valgrind -s --leak-check=full --track-fds=yes ${CMAKE_BINARY_DIR}/${PROJECT_NAME}
