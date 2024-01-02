@@ -23,8 +23,8 @@ static void _alloc_cleanup(void *ptr) {
 static size_t _max_fd_cleanups = 16;
 static size_t _max_alloc_cleanups = 16;
 
-static FILE **_fd_cleanups_args;
-static void **_alloc_cleanups_args;
+static FILE **_fd_cleanups_args = NULL;
+static void **_alloc_cleanups_args = NULL;
 
 static size_t _fd_cleanups_i = 0;
 static size_t _alloc_cleanups_i = 0;
@@ -55,8 +55,8 @@ static void _realloc_fd_cleanups_args() {
 static void _realloc_alloc_cleanups_args() {
   _max_alloc_cleanups *= 2;
   _alloc_cleanups_args =
-      (void *)realloc(_alloc_cleanups_args,
-                      _max_alloc_cleanups * sizeof(*_alloc_cleanups_args));
+      (void **)realloc(_alloc_cleanups_args,
+                       _max_alloc_cleanups * sizeof(*_alloc_cleanups_args));
   if (_alloc_cleanups_args == NULL) {
     perror("realloc() for '_alloc_cleanups_args'");
     exit(_CLEANUP_REALLOC_ERR);
